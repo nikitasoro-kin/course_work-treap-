@@ -8,7 +8,8 @@ class TreeWidget : public QWidget {
     Q_OBJECT
 public:
     explicit TreeWidget(QWidget *parent = nullptr);
-    void setTreap(Treap* treap);
+    void setTreap(Treap* t);
+    QSize minimumSizeHint() const override;
 
 protected:
     void paintEvent(QPaintEvent* event) override;
@@ -19,7 +20,9 @@ private:
     int verticalSpacing = 60;
 
     void calculatePositions(QPainter& painter, TreapNode* node, int x, int y, int level);
-    int calculateSubtreeWidth(TreapNode* node);
+    int calculateSubtreeWidth(TreapNode* node) const;
+    int calculateTreeHeight(TreapNode* node) const;
 };
 
 #endif // TREEWIDGET_H
+
