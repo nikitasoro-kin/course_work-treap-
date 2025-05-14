@@ -2,14 +2,15 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QScrollArea>
 #include "treap.h"
-#include <QIntValidator>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
-class MainWindow : public QMainWindow {
+class MainWindow : public QMainWindow
+{
     Q_OBJECT
 
 public:
@@ -20,11 +21,11 @@ private slots:
     void onLoadFromFile();
     void onInsertClicked();
     void onRemoveClicked();
+    void updateTreeView();
 
 private:
     Ui::MainWindow *ui;
     Treap treap;
-    void updateTreeView();
+    QScrollArea *treeScrollArea;  
 };
-
 #endif // MAINWINDOW_H
