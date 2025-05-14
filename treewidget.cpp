@@ -7,31 +7,56 @@ TreeWidget::TreeWidget(QWidget *parent) : QWidget(parent), treap(nullptr) {}
 void TreeWidget::setTreap(Treap* t) {
     treap = t;
     update();
+    updateGeometry();
 }
 
-void TreeWidget::paintEvent(QPaintEvent* event) {
+int TreeWidget::calculateTreeHeight(TreapNode* node) const {
+    if (!node) return 0;
+    return 1 + std::max(calculateTreeHeight(node->left),
+                        calculateTreeHeight(node->right));
+}
+
+QSize TreeWidget::minimumSizeHint() const {
+    if (!treap || !treap->getRoot()) {
+        return QSize(100, 100); 
+    }
+
+    int width = calculateSubtreeWidth(treap->getRoot()) * nodeRadius * 4;
+    int height = calculateTreeHeight(treap->getRoot()) * verticalSpacing + 100;
+
+    return QSize(width, height);
+}
+
+void TreeWidget::paintEvent(QPaintEvent *event)
+{
     Q_UNUSED(event);
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
 
+    painter.fillRect(rect(), Qt::white);
+
     if (treap && treap->getRoot()) {
-        calculatePositions(painter, treap->getRoot(), width()/2, 50, 0);
+        int width = calculateSubtreeWidth(treap->getRoot()) * nodeRadius * 4;
+        int height = calculateTreeHeight(treap->getRoot()) * verticalSpacing + 100;
+
+        setMinimumSize(width, height);
+
+        int startX = this->width() / 2;
+        calculatePositions(painter, treap->getRoot(), startX, 50, 0);
+
+        qDebug() << "Tree painted. Size:" << size() << "Min size:" << minimumSize();
     }
 }
 
-// Рекурсивный расчет позиций узлов
 void TreeWidget::calculatePositions(QPainter& painter, TreapNode* node, int x, int y, int level) {
     if (!node) return;
 
-    // Рассчитываем горизонтальный отступ на основе ширины поддеревьев
     int leftWidth = calculateSubtreeWidth(node->left);
     int rightWidth = calculateSubtreeWidth(node->right);
 
-    // Сохраняем позицию узла
     node->posX = x;
     node->posY = y;
 
-    // Рисуем связи с дочерними узлами
     if (node->left) {
         int childX = x - (rightWidth + 1) * nodeRadius * 2;
         int childY = y + verticalSpacing;
@@ -46,7 +71,6 @@ void TreeWidget::calculatePositions(QPainter& painter, TreapNode* node, int x, i
         calculatePositions(painter, node->right, childX, childY, level + 1);
     }
 
-    // Рисуем узел
     painter.setBrush(Qt::white);
     painter.drawEllipse(QPoint(x, y), nodeRadius, nodeRadius);
     painter.drawText(QRect(x - nodeRadius, y - nodeRadius,
@@ -54,8 +78,8 @@ void TreeWidget::calculatePositions(QPainter& painter, TreapNode* node, int x, i
                      Qt::AlignCenter, QString::number(node->key) + "/" + QString::number(node->priority));
 }
 
-// Расчет ширины поддерева
-int TreeWidget::calculateSubtreeWidth(TreapNode* node) {
+int TreeWidget::calculateSubtreeWidth(TreapNode* node) const {
     if (!node) return 0;
     return 1 + calculateSubtreeWidth(node->left) + calculateSubtreeWidth(node->right);
 }
+
